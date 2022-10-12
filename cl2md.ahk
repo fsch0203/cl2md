@@ -1,10 +1,8 @@
 _DateFormat := "yyyy-MM-dd HH:mm"
 _CopyPlusMenu = 0 ; If true: show menu when url is copied
-_UrlsFile = %A_ScriptDir%\urls.md
-_UrlsFileShort := "\urls.md"
+_UrlsFileShort := "urls.md"
 _HotkeyCopyPlus := "^+c"
-_RootFolder := A_MyDocuments
-; MsgBox, %_RootFolder%
+_RootFolder := A_MyDocuments . "\"
 
 EnvGet, LocalAppData, LocalAppData
 FileCreateDir, %LocalAppData%\cl2md
@@ -33,7 +31,6 @@ Menu, Tray, Add, Show help, QuickStartGuide ; add a new tray menu entry
 ; Menu, Tray, Add, Edit settings, editSettings ; add another tray menu entry
 Menu, Tray, Add, Exit, Exit ; add another tray menu entry
 Menu, Tray, Default, Show settings ;When doubleclicking the tray icon, run the tray menu entry called "MyDefaultAction".
-; Menu, Tray, Standard
 Menu, Tray, Icon, Show help, shell32, 24
 Menu, Tray, Icon, Show settings, shell32, 138
 Menu, Tray, Icon, Exit, shell32.dll, 28
@@ -45,7 +42,6 @@ Menu, Tray, Tip, %AppWindow% Open %_AppName% with %_HotkeyMain%
 getUrlFromCB(Type) { ; Runs when clipboard has changed (by Ctrl-c)
     global _arrCbRows, _CopyPlusMenu, _UrlsFile, _GrabEveryUrl, _RowsSelected, _GrabbedRow
     If (_CopyPlusMenu = 1) {
-        ; MsgBox, "test"
         clip := Clipboard
         tags := ""
         arrAutoTags := getAutotags()
@@ -60,9 +56,7 @@ getUrlFromCB(Type) { ; Runs when clipboard has changed (by Ctrl-c)
                     tags := arrAutotag[2]
             }
             WinGetTitle, title, A
-            ; title := SubStr(title, 1, 60)
             _GrabbedRow := AddQuotes(A_now) . "," . AddQuotes(title) . "," . AddQuotes(url) . "," . AddQuotes(tags) . "," . AddQuotes(0)
-            ; MsgBox, %_GrabbedRow%
             _RowsSelected := 0 ; so we know it's a new record
             showEditBookmark()
             _CopyPlusMenu = 0
@@ -71,27 +65,22 @@ getUrlFromCB(Type) { ; Runs when clipboard has changed (by Ctrl-c)
 }
 
 getSettings(){
-    global _HotkeyCopyPlus, _UrlsFile, _IniFile, _RootFolder
-    ; IniRead, _HotkeyCopyPlus, %_IniFile%, Hotkeys, HotkeyCopyPlus, %_HotkeyCopyPlus%
+    global _HotkeyCopyPlus, _UrlsFile, _UrlsFileShort, _IniFile, _RootFolder
     IniRead, _HotkeyCopyPlus, %_IniFile%, Settings, HotkeyCopyPlus, %_HotkeyCopyPlus%
-    ; MsgBox, %_HotkeyCopyPlus%
-    IniRead, _UrlsFile, %_IniFile%, Settings, UrlsFile, %_UrlsFile%
+    IniRead, _UrlsFileShort, %_IniFile%, Settings, UrlsFileShort, %_UrlsFileShort%
     IniRead, _RootFolder, %_IniFile%, Settings, RootFolder, %_RootFolder%
-    ; MsgBox, %_UrlsFile%
     Hotkey, %_HotkeyCopyPlus%, doCopyPlus ; Calls function() when a is pressed
-    ; Hotkey, ^!k, MyFunction ; Calls MyFunction() when a is pressed
 }
 
 doCopyPlus(){
     global _CopyPlusMenu
-    ; _RowSelected := 1
     _CopyPlusMenu = 1
     Send, ^c
 }
 
 showEditBookmark(){
-    global _GrabbedRow, _UrlsFile, _RootFolder
-    global editTitle, editUrl, editTags, editFav, editUrlsFile, picFav
+    global _GrabbedRow, _UrlsFile, _UrlsFileShort, _RootFolder
+    global editTitle, editUrl, editTags, editFav, editUrlsFileShort, picFav
     line := _GrabbedRow
     grabbeddate := getCsvField(line, 1)
     grabbedtitle := getCsvField(line, 2)
@@ -107,7 +96,7 @@ showEditBookmark(){
     Gui, Add, Text, x22 yp+30 w280 h20 , Tags
     Gui, Add, Edit, x22 yp+20 w420 h20 veditTags, Edit
     Gui, Add, Text, x22 yp+30 w280 h20 , Urls-file
-    Gui, Add, Edit, x22 yp+20 w420 h20 veditUrlsFile, Edit
+    Gui, Add, Edit, x22 yp+20 w420 h20 veditUrlsFileShort, Edit
     Gui, Add, Button, x445 yp w20 h20 gsetUrlsFile, >
     Gui, Add, Text, x22 yp+30 w280 h20 , Root-folder
     Gui, Add, Text, x22 yp+20 w420 h20, %_RootFolder%
@@ -119,8 +108,7 @@ showEditBookmark(){
     GuiControl, EditBookmark:, editUrl, %grabbedurl%
     GuiControl, EditBookmark:, editTags, %grabbedtags%
     GuiControl, EditBookmark:, editFav, %grabbedfav%
-    GuiControl, EditBookmark:, editUrlsFile, %_UrlsFile%
-    ; GuiControl, EditBookmark:, picFav, src\star%grabbedfav%.png
+    GuiControl, EditBookmark:, editUrlsFileShort, %_UrlsFileShort%
     width := 480
     height := 300
     xleft := (A_ScreenWidth / 2) - (width /2)
@@ -159,23 +147,23 @@ return
 ; ============ Functions ======================================
 
 setUrlsFile(){
-    global _UrlsFile, _RootFolder
-    ; FileSelectFile, SelectedFile, 3, c:\Users\frans\OneDrive\Documenten\Drive\kb\kb\_notes\url\urls.md , Open a file, Markdown documents (*.md)
-    ; FileSelectFile, SelectedFile, 0, %_UrlsFile% , Open a file, Markdown documents (*.md)
+    global _UrlsFile, _UrlsFileShort, _RootFolder
     FileSelectFile, SelectedFile, 0, %_RootFolder% , Open a file, Markdown documents (*.md)
     if (SelectedFile = ""){
         ; MsgBox, The user didn't select anything.
     } else {
-        GuiControl, EditBookmark:, editUrlsFile, %SelectedFile%
-        ; GuiControl, Settings:, editUrlsFile, %SelectedFile%
+        RootLength := StrLen(_RootFolder) + 1
+        _UrlsFileShort := SubStr(SelectedFile, RootLength)
+        GuiControl, EditBookmark:, editUrlsFileShort, %_UrlsFileShort%
     }
 }
 
 setRootFolder(){
     global _RootFolder
-    ; FileSelectFolder, Folder, %_RootFolder%, 1, Select vault or root directory
     FileSelectFolder, Folder, , 1, Select root directory (vault or subfolder)
     Folder := RegExReplace(Folder, "\\$")  ; Removes the trailing backslash, if present.
+    Folder .= "\"
+    MsgBox, %Folder%
 
     if (Folder = ""){
         ; MsgBox, The user didn't select anything.
@@ -187,12 +175,11 @@ setRootFolder(){
 
 
 saveBookmark(){
-    global _UrlsFile, _IniFile, _DateFormat, _HotkeyCopyPlus
-    ; MsgBox, %_RowsSelected%
+    global _UrlsFile, _UrlsFileShort, _RootFolder, _IniFile, _DateFormat, _HotkeyCopyPlus
     GuiControlGet, editTitle, EditBookmark:
     GuiControlGet, editUrl, EditBookmark:
     GuiControlGet, editTags, EditBookmark:
-    GuiControlGet, editUrlsFile, EditBookmark:
+    GuiControlGet, editUrlsFileShort, EditBookmark:
     ; tooltip, % editTitle a_space editUrl  , 100, 100, 3
     editTitle := SubStr(editTitle, 1, 60)
     tags := ""
@@ -209,26 +196,18 @@ saveBookmark(){
     row := Chr(13) . Chr(10) . now . " " . editTags 
     row .= Chr(13) . Chr(10) . "[" . editTitle . "]"
     row .= "(" . editUrl . ")" . Chr(13) . Chr(10)
-    _UrlsFile := editUrlsFile
-    IniWrite, %_UrlsFile%, %_IniFile%, Settings, UrlsFile
-    ; MsgBox, %_IniFile%
+    _UrlsFileShort := editUrlsFileShort
+    IniWrite, %_UrlsFileShort%, %_IniFile%, Settings, UrlsFileShort
     IniWrite, %_HotkeyCopyPlus%, %_IniFile%, Settings, HotkeyCopyPlus
 
-    FileAppend, %row%, %_UrlsFile%
-    ; writeUrlFile(row)
-    ; readUrlFile(_UrlsFile)
+    UrlsFile := _RootFolder . _UrlsFileShort
+    FileAppend, %row%, %UrlsFile%
     WinClose, Edit bookmark
-    ; showMainGui()
 }
 
 cancelBookmark(){
     Gui, EditBookmark:Destroy
 }
-
-; writeUrlFile(row){ ; save array _arrCbRows to file  ##### CHECK #######
-;     global _UrlsFile
-;     FileAppend, %row%, %_UrlsFile%
-; }
 
 
 
@@ -261,33 +240,6 @@ getAutotags(){ ; return arrAutoTags from _Inifile
     return arrAutoTags
 }
 
-
-readUrlFile(_UrlsFile){ ; Fill arrays from urlsfile
-    global _arrCbRows := [] ; 1 row per record: "datetime", "title", "url", "tags","fav"
-    global _objTags := {} ; object: key=tag, value=frequency
-    global _Found = 0
-    Loop, read, %_UrlsFile%
-    {
-        row := A_LoopReadLine
-        x := A_Index
-        _arrCbRows.push(row)
-        _Found++
-    }
-    For index, row in _arrCbRows {
-        tags := getCsvField(row, 4)
-        arrTags := StrSplit(tags, A_Space)
-        For idx, tag in arrTags {
-            If (_objTags[tag] > 0){ 
-                m := _objTags[tag] + 1
-                _objTags[tag] := m
-            } Else {
-                _objTags[tag] := 1
-            }
-        }
-        ; _objTags.ahk := 12
-    }
-}
-
 getCsvField(row, fieldnr){
     Loop, parse, row, CSV 
     {
@@ -295,32 +247,6 @@ getCsvField(row, fieldnr){
         return A_LoopField
     }
 }
-
-; SortSaveFile(file){ 
-;     FileRead, Contents, %file%
-;     if not ErrorLevel  ; Successfully loaded.
-;     {
-;         ; FileCopy, %file%, %file%-s%A_Now%.bak , 1
-;         Sort, Contents, R
-;         FileDelete, %file%
-;         FileAppend, %Contents%, %file%
-;         Contents := ""  ; Free the memory.
-;     }
-;     Return
-; }
-
-
-
-
-; showAll(){
-;     global _arrCbRows, _TagSelected, _Found
-;     _Found := _arrCbRows.Length()
-;     SB_SetText("Records: " . _Found,2)
-;     ; tot := _arrCbRows.length()
-;     _TagSelected := ""
-;     GuiControl,Main:,_CurrText,
-;     GuiControl,Main:,_CurrTag,
-; }
 
 doEscape(){
     global _arrCbRows, _TagSelected, _Found
@@ -334,7 +260,6 @@ doEscape(){
     }
 }
 
-
 AddQuotes(MyString) { ; add double quotes on string
 	StringReplace,  MyString,  MyString, `", `"`", All
 	return """" MyString """"
@@ -343,8 +268,6 @@ AddQuotes(MyString) { ; add double quotes on string
 goReloadCB(){
     global _ShowMainOnLoad, _IniFile
     MsgBox, 48, CopyLink2MD, Reloaded!
-    ; _ShowMainOnLoad := 1 ; show main menu after reload
-    ; IniWrite, %_ShowMainOnLoad%, %_IniFile%, Settings, ShowMainOnLoad
     Reload
     Sleep 1000 ; If successful, the reload will close this instance during the Sleep, so the line below will never be reached.
     MsgBox, 4,, The script could not be reloaded. Would you like to open it for editing?
