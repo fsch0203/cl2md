@@ -10,9 +10,6 @@ FileCreateDir, %LocalAppData%\cl2md
 FileAppend, , %LocalAppData%\cl2md\cl2md.ini
 _IniFile = %LocalAppData%\cl2md\cl2md.ini
 
-getSettings()
-showQuickStartGuide()
-
 #Persistent
 #SingleInstance Force
 #NoEnv
@@ -33,7 +30,13 @@ Menu, Tray, Icon, Show settings, shell32, 138
 Menu, Tray, Icon, Exit, shell32.dll, 28
 Menu, Tray, Tip, %AppWindow% Open %_AppName% with %_HotkeyMain%
 
+getSettings()
+showQuickStartGuide()
+
 ; Hotkeys ------------------------------------------------------------------
+
+#IfWinActive CopyLink2MD Quick Start Guide ahk_class AutoHotkeyGUI
+    Esc::!F4
 
 #IfWinActive CopyLink2MD Settings ahk_class AutoHotkeyGUI
     Esc::!F4
@@ -121,6 +124,7 @@ showEditBookmark(GrabbedRow){
     Gui, Add, Text, x22 yp+20 w420 h20, %_RootFolder%
     Gui, Add, Button, x312 yp+35 w60 h20 Default gsaveBookmark, &Save
     Gui, Add, Button, x22 yp w60 h20 gstartSettingsMenu, Se&ttings
+    Gui, Add, Button, x92 yp w60 h20 gQuickStartGuide, &Help
     Gui, Add, Button, x382 yp w60 h20 gcancelBookmark, &Cancel
 
     GuiControl, EditBookmark:, editTitle, %grabbedtitle%
@@ -159,8 +163,6 @@ setRootFolder(){
     FileSelectFolder, Folder, , 1, Select root directory (vault or subfolder)
     Folder := RegExReplace(Folder, "\\$")  ; Removes the trailing backslash, if present.
     Folder .= "\"
-    MsgBox, %Folder%
-
     if (Folder = ""){
         ; MsgBox, The user didn't select anything.
     } else {
@@ -304,7 +306,8 @@ QuickStartGuide(){
     Gui, 55:Add, ActiveX, w550 h430 x10 y10 vdoc, HTMLFile
     doc.write(quickstarthtml)
     Gui, 55:font, s10 arial
-    Gui, 55:Add, Checkbox, xp yp+440 w420 h25 g55GuiStartupCheckbox vhideQuickStartGuideAtStartup Checked%hideQuickStartGuideAtStartup%, Hide Quick start guide at start up.
+    Gui, 55:Add, Button, xp yp+440 w60 h20 gstartSettingsMenu, Se&ttings
+    Gui, 55:Add, Checkbox, xp+300 yp w230 h25 g55GuiStartupCheckbox vhideQuickStartGuideAtStartup Checked%hideQuickStartGuideAtStartup%, Hide Quick start guide at start up.
     Gui, 55:Show,,CopyLink2MD Quick Start Guide
 }
 

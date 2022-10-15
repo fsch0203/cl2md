@@ -9,4 +9,3 @@ The app gives you the option to set a folder as the root for notes with bookmark
 You can automatically add tags for frequently used websites like youtube, github, imdb, etcetera. This makes it easy to get e.g. your favorite movie list. You can add or change the preferred websites for autotagging in the Settings menu.
 
 Copy a symbolic link of cl2md.exe (or cl2md.ahk if you have autohotkey installed) to your startup-folder to run the app automatically at startup. See <a href="https://support.microsoft.com/en-us/windows/add-an-app-to-run-automatically-at-startup-in-windows-10-150da165-dcd9-7230-517b-cf3c295d89dd">here</a> how.
-
