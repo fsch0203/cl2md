@@ -1,10 +1,10 @@
 # CopyLink2MD
 
-CopyLink2MD is a simple tool to save the url of a website to a markdown-file. Copy a url with <kbd>[hotkeycopyplus]</kbd> to save it.
+CopyLink2MD is a simple tool to quickly save the url of a website to a markdown-file.
 
 The application is especially helpful if you use markdown files to organize all your notes, with for example Obsidian, Zettlr, Typora, etcetera. 
 
-The app gives you the option to set a folder as the root for notes with bookmarks, e.g. (a subfolder of) your vault. Every time you want to save a url: select it and instead of <kbd>Ctrl-c</kbd> you press <kbd>[hotkeycopyplus]</kbd> (or other hotkey). It will show a menu to edit or add some more information (e.g. tags) or just press enter to save it in the default markdown-file. 
+The app gives you the option to set a folder as the root for notes with bookmarks, e.g. (a subfolder of) your vault. Every time you want to save a url: select it and instead of `Ctrl-c` you press `Ctrl-Shft-c` (or other hotkey). It will show a menu to edit or add some more information (e.g. tags) or just press enter to save it in the default markdown-file. 
 
 You can automatically add tags for frequently used websites like youtube, github, imdb, etcetera. This makes it easy to get e.g. your favorite movie list. You can add or change the preferred websites for autotagging in the Settings menu.
 
