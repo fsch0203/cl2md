@@ -1,47 +1,58 @@
 _DateFormat := "yyyy-MM-dd HH:mm"
 _CopyPlusMenu = 0 ; If true: show menu when url is copied
 _UrlsFile = %A_ScriptDir%\urls.md
-; _UrlsFileShort := "\urls.md"
 _HotkeyCopyPlus := "^+c"
 _arrUrlsFiles := [] ; recently used UrlFiles
 _RootFolder := A_MyDocuments
-; MsgBox, %_RootFolder%
 
 EnvGet, LocalAppData, LocalAppData
 FileCreateDir, %LocalAppData%\cl2md
 FileAppend, , %LocalAppData%\cl2md\cl2md.ini
 _IniFile = %LocalAppData%\cl2md\cl2md.ini
 
-getSettings()
-showQuickStartGuide()
-; MsgBox, %_ShowMainOnLoad%
-
-
 #Persistent
 #SingleInstance Force
 #NoEnv
-; #Include .\lib\CbAutoComplete.ahk
 
 SetBatchLines, -1
 SetWorkingDir %A_ScriptDir%
 OnClipboardChange("getUrlFromCB")
 
-; Menu, tray, icon, shell32, 264
 Menu, tray, icon, icon-teal.png, 1
 Menu, Tray, NoStandard ; remove default tray menu entries
 Menu, Tray, Add, Show settings, startSettingsMenu ; add a new tray menu entry
 Menu, Tray, Add, Show help, QuickStartGuide ; add a new tray menu entry
-; Menu, Tray, Add, Edit settings, editSettings ; add another tray menu entry
 Menu, Tray, Add, Exit, Exit ; add another tray menu entry
 Menu, Tray, Default, Show settings ;When doubleclicking the tray icon, run the tray menu entry called "MyDefaultAction".
-; Menu, Tray, Standard
 Menu, Tray, Icon, Show help, shell32, 24
 Menu, Tray, Icon, Show settings, shell32, 138
 Menu, Tray, Icon, Exit, shell32.dll, 28
-; Menu, Tray, Icon, Edit settings, shell32.dll, 115
 Menu, Tray, Tip, %AppWindow% Open %_AppName% with %_HotkeyMain%
 
+getSettings()
+showQuickStartGuide()
 
+; Hotkeys ------------------------------------------------------------------
+#IfWinActive CopyLink2MD Quick Start Guide ahk_class AutoHotkeyGUI
+    Esc::!F4
+
+#IfWinActive CopyLink2MD Settings ahk_class AutoHotkeyGUI
+    Esc::!F4
+    Enter::SaveSettings()
+
+#IfWinActive Edit bookmark ahk_class AutoHotkeyGUI
+    Esc::!F4
+    Enter::saveBookmark()
+    ; Enter::Tab
+
+#IfWinActive ; Other hotkeys
+    ^+r::goReloadCB()
+
+; End Hotkeys ------------------------------------------------------------------
+
+return
+
+; ============ Functions ======================================
 
 getUrlFromCB(Type) { ; Runs when clipboard has changed (by Ctrl-c)
     global _arrCbRows, _CopyPlusMenu, _UrlsFile, _GrabEveryUrl, _RowsSelected, _GrabbedRow
@@ -61,9 +72,7 @@ getUrlFromCB(Type) { ; Runs when clipboard has changed (by Ctrl-c)
                     tags := arrAutotag[2]
             }
             WinGetTitle, title, A
-            ; title := SubStr(title, 1, 60)
             _GrabbedRow := AddQuotes(A_now) . "," . AddQuotes(title) . "," . AddQuotes(url) . "," . AddQuotes(tags) . "," . AddQuotes(0)
-            ; MsgBox, %_GrabbedRow%
             _RowsSelected := 0 ; so we know it's a new record
             showEditBookmark()
             _CopyPlusMenu = 0
@@ -73,21 +82,16 @@ getUrlFromCB(Type) { ; Runs when clipboard has changed (by Ctrl-c)
 
 getSettings(){
     global _HotkeyCopyPlus, _UrlsFile, _IniFile, _RootFolder, _arrUrlsFiles
-    ; IniRead, _HotkeyCopyPlus, %_IniFile%, Hotkeys, HotkeyCopyPlus, %_HotkeyCopyPlus%
     IniRead, _HotkeyCopyPlus, %_IniFile%, Settings, HotkeyCopyPlus, %_HotkeyCopyPlus%
-    ; MsgBox, %_HotkeyCopyPlus%
     IniRead, _UrlsFile, %_IniFile%, Settings, UrlsFile, %_UrlsFile%
     IniRead, strUrlsFiles, %_IniFile%, Settings, UrlsFiles, %_UrlsFile%
     _arrUrlsFiles := StrSplit(strUrlsFiles , ",")
     IniRead, _RootFolder, %_IniFile%, Settings, RootFolder, %_RootFolder%
-    ; MsgBox, %_UrlsFile%
     Hotkey, %_HotkeyCopyPlus%, doCopyPlus ; Calls function() when a is pressed
-    ; Hotkey, ^!k, MyFunction ; Calls MyFunction() when a is pressed
 }
 
 doCopyPlus(){
     global _CopyPlusMenu
-    ; _RowSelected := 1
     _CopyPlusMenu = 1
     Send, ^c
 }
@@ -114,7 +118,6 @@ showEditBookmark(){
     For index, value in _arrUrlsFiles {
         strUrlsFiles .= value . "|"
     }
-    ; Gui, Add, Edit, x22 yp+20 w420 h20 veditUrlsFile, Edit
     Gui, Add, ComboBox, x22 yp+20 w420 h20 r8 vcomboUrlsFile Choose1, %strUrlsFiles%
     Gui, Add, Button, x445 yp w20 h20 gsetUrlsFile, >
     Gui, Add, Text, x22 yp+30 w280 h20 , Root-folder
@@ -128,43 +131,12 @@ showEditBookmark(){
     GuiControl, EditBookmark:, editTags, %grabbedtags%
     GuiControl, EditBookmark:, editFav, %grabbedfav%
     GuiControl, EditBookmark:, editUrlsFile, %_UrlsFile%
-    ; GuiControl, EditBookmark:, picFav, src\star%grabbedfav%.png
     width := 480
     height := 300
     xleft := (A_ScreenWidth / 2) - (width /2)
     ytop := (A_ScreenHeight /2) - (height / 2)
     Gui, EditBookmark:Show, center x%xleft% y%ytop% h%height% w%width%, Edit bookmark
 }
-
-; Hotkeys ------------------------------------------------------------------
-
-#IfWinActive CopyLink2MD Settings ahk_class AutoHotkeyGUI
-    Esc::!F4
-    Enter::SaveSettings()
-
-#IfWinActive Edit bookmark ahk_class AutoHotkeyGUI
-    Esc::!F4
-    Enter::saveBookmark()
-    ; Enter::Tab
-
-#IfWinActive ; Other hotkeys
-    ^+r::goReloadCB()
-
-; End Hotkeys ------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-; Menu, tray, icon, shell32, 264
-
-return
-
-; ============ Functions ======================================
 
 setUrlsFile(){ ; activated by button next to comboUrlsFileShort
     global _UrlsFile, _RootFolder, _arrUrlsFiles
@@ -256,16 +228,6 @@ cancelBookmark(){
     Gui, EditBookmark:Destroy
 }
 
-; writeUrlFile(row){ ; save array _arrCbRows to file  ##### CHECK #######
-;     global _UrlsFile
-;     FileAppend, %row%, %_UrlsFile%
-; }
-
-
-
-
-
-
 Exit() {
     ExitApp
 }
@@ -327,32 +289,6 @@ getCsvField(row, fieldnr){
     }
 }
 
-; SortSaveFile(file){ 
-;     FileRead, Contents, %file%
-;     if not ErrorLevel  ; Successfully loaded.
-;     {
-;         ; FileCopy, %file%, %file%-s%A_Now%.bak , 1
-;         Sort, Contents, R
-;         FileDelete, %file%
-;         FileAppend, %Contents%, %file%
-;         Contents := ""  ; Free the memory.
-;     }
-;     Return
-; }
-
-
-
-
-; showAll(){
-;     global _arrCbRows, _TagSelected, _Found
-;     _Found := _arrCbRows.Length()
-;     SB_SetText("Records: " . _Found,2)
-;     ; tot := _arrCbRows.length()
-;     _TagSelected := ""
-;     GuiControl,Main:,_CurrText,
-;     GuiControl,Main:,_CurrTag,
-; }
-
 doEscape(){
     global _arrCbRows, _TagSelected, _Found
     tot := _arrCbRows.length()
@@ -374,8 +310,6 @@ AddQuotes(MyString) { ; add double quotes on string
 goReloadCB(){
     global _ShowMainOnLoad, _IniFile
     MsgBox, 48, CopyLink2MD, Reloaded!
-    ; _ShowMainOnLoad := 1 ; show main menu after reload
-    ; IniWrite, %_ShowMainOnLoad%, %_IniFile%, Settings, ShowMainOnLoad
     Reload
     Sleep 1000 ; If successful, the reload will close this instance during the Sleep, so the line below will never be reached.
     MsgBox, 4,, The script could not be reloaded. Would you like to open it for editing?
@@ -435,11 +369,7 @@ startSettingsMenu(){
 }
 
 FillSettingsMenu(){
-    ; global _HotkeyMain, _HotkeyCopyPlus, _UrlsFile, _GrabEveryUrl, _NewDateAfterOpen
-    global _HotkeyCopyPlus, _UrlsFile
-    ; GuiControl, Settings:, UrlsFile, %_UrlsFile%
-    ; GuiControl, Settings:, GrabEveryUrl, %_GrabEveryUrl%
-    ; GuiControl, Settings:, NewDateAfterOpen, %_NewDateAfterOpen%
+   global _HotkeyCopyPlus, _UrlsFile
     arrAutoTags := getAutotags()
     for index, row in arrAutotags 
     {
@@ -449,22 +379,10 @@ FillSettingsMenu(){
         GuiControl,Settings:,urlpart%index%, %urlpart%
         GuiControl,Settings:,autotag%index%, %autotag%
     }
-    ; GuiControl, Settings:, CtrlM, 0
-    ; GuiControl, Settings:, AltM, 0
-    ; GuiControl, Settings:, ShftM, 0
-    ; GuiControl, Settings:, WinM, 0
     GuiControl, Settings:, CtrlC, 0
     GuiControl, Settings:, AltC, 0
     GuiControl, Settings:, ShftC, 0
     GuiControl, Settings:, WinC, 0
-    ; If InStr(_HotkeyMain, "^")
-    ;     GuiControl, Settings:, CtrlM, 1
-    ; If InStr(_HotkeyMain, "!")
-    ;     GuiControl, Settings:, AltM, 1
-    ; If InStr(_HotkeyMain, "+")
-    ;     GuiControl, Settings:, ShftM, 1
-    ; If InStr(_HotkeyMain, "#")
-    ;     GuiControl, Settings:, WinM, 1
     If InStr(_HotkeyCopyPlus, "^")
         GuiControl, Settings:, CtrlC, 1
     If InStr(_HotkeyCopyPlus, "!")
@@ -473,49 +391,19 @@ FillSettingsMenu(){
         GuiControl, Settings:, ShftC, 1
     If InStr(_HotkeyCopyPlus, "#")
         GuiControl, Settings:, WinC, 1
-    ; hkmain := RegExReplace(_HotkeyMain, "[\^!+#]" , "")
     hkcp := RegExReplace(_HotkeyCopyPlus, "[\^!+#]" , "")
-    ; MsgBox, %hkmain% %hkcp%
-    ; GuiControl, Settings:,HotkeyMain, %hkmain%
     GuiControl, Settings:,HotkeyCopyPlus, %hkcp%
-    ; GuiControl, Settings:, editUrlsFile, %_UrlsFile%
 }
 
 SaveSettings(){
     global _IniFile
-    ; MsgBox, %_IniFile%
-    ; GuiControlGet, UrlsFile, Settings:
-    ; IniWrite, %UrlsFile%, %_IniFile%, Settings, UrlsFile
-    ; GuiControlGet, GrabEveryUrl, Settings:
-    ; IniWrite, %GrabEveryUrl%, %_IniFile%, Settings, GrabEveryUrl
-    ; GuiControlGet, NewDateAfterOpen, Settings:
-    ; IniWrite, %NewDateAfterOpen%, %_IniFile%, Settings, NewDateAfterOpen
-    ; GuiControlGet, SortOnFav, Settings:
-    ; IniWrite, %SortOnFav%, %_IniFile%, Settings, SortOnFav
-
-    ; GuiControlGet, HotkeyMain, Settings:
     GuiControlGet, HotkeyCopyPlus, Settings:
-    ; GuiControlGet, editUrlsFile, Settings:
     GuiControlGet, RootFolder, Settings:
-    ; MsgBox, %RootFolder%
-    ; GuiControlGet, CtrlM, Settings:
-    ; GuiControlGet, AltM, Settings:
-    ; GuiControlGet, ShftM, Settings:
-    ; GuiControlGet, WinM, Settings:
     GuiControlGet, CtrlC, Settings:
     GuiControlGet, AltC, Settings:
     GuiControlGet, ShftC, Settings:
     GuiControlGet, WinC, Settings:
-    ; hkmain := ""
     hkcp := ""
-    ; If (CtrlM = 1)
-    ;     hkmain .= "^"
-    ; If (AltM = 1)
-    ;     hkmain .= "!"
-    ; If (ShftM = 1)
-    ;     hkmain .= "+"
-    ; If (WinM = 1)
-    ;     hkmain .= "#"
     If (CtrlC = 1)
         hkcp .= "^"
     If (AltC = 1)
@@ -524,12 +412,8 @@ SaveSettings(){
         hkcp .= "+"
     If (WinC = 1)
         hkcp .= "#"
-    ; hkmain .= HotkeyMain
     hkcp .= HotkeyCopyPlus
-    ; IniWrite, %hkmain%, %_IniFile%, Hotkeys, HotkeyMain
-    ; FileAppend,, %_IniFile%
     IniWrite, %hkcp%, %_IniFile%, Settings, HotkeyCopyPlus
-    ; IniWrite, %editUrlsFile%, %_IniFile%, Settings, UrlsFile
     IniWrite, %RootFolder%, %_IniFile%, Settings, RootFolder
 
     GuiControlGet, urlpart1, Settings:
@@ -575,29 +459,12 @@ SaveSettings(){
     ;     Gui, Settings:Destroy
 }
 
-; OpenCsvFile(){
-;     FileSelectFile, SelectedFile, 3, , Open csv-file, CSV-Documents (*.csv)
-;     if (SelectedFile = "")
-;         Return
-;     else
-;         GuiControl, Settings:,UrlsFile, %SelectedFile%
-    
-; }
-
-; SetHotkeysDefault(){
-;     IniDelete, %_IniFile%, Hotkeys
-; }
-
 showSettingsMenu(){
     global _Width, _Height
     global urlpart1, urlpart2, urlpart3, urlpart4, urlpart5, urlpart6, urlpart7, urlpart8
     global autotag1, autotag2, autotag3, autotag4, autotag5, autotag6, autotag7, autotag8
-    ; global HotkeyMain, HotkeyCopyPlus, CtrlM, AltM, ShftM, WinM, CtrlC, AltC, ShftC, WinC
-    ; global HotkeyCopyPlus, CtrlC, AltC, ShftC, WinC, editUrlsFile
     global HotkeyCopyPlus, CtrlC, AltC, ShftC, WinC, RootFolder, _RootFolder
-    ; MsgBox, %_RootFolder%
     Gui, Settings:New,, Settings
-    ; Gui, Font, s9.5, Verdana 
     Gui, Font, s9, Verdana  ; Set 9-point Verdana.
     Gui, Font, w700, Verdana 
     Gui, Add, Text, x20 yp+30 w180 h20 , Hotkey
@@ -610,7 +477,6 @@ showSettingsMenu(){
     Gui, Add, Edit, x350 yp w90 h20 vHotkeyCopyPlus, 
 
     Gui, Font, w700, Verdana 
-    ; Gui, Add, Text, x22 yp+40 w280 h20 , Urls-file
     Gui, Add, Text, x22 yp+40 w280 h20 , Root-folder
     Gui, Font, w400, Verdana 
     Gui, Add, Button, x430 yp w60 h20 gsetRootFolder, Se&lect
